@@ -5,6 +5,7 @@ from torchvision import models
 from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
 from models.resnet_simclr import ResNetSimCLR
 from simclr import SimCLR
+from pastis.dataloader import PASTIS_Dataset
 
 PATH_TO_PASTIS = "../PASTIS-R"
 PATH_TO_PASTIS_CODE = "pastis"
@@ -67,9 +68,9 @@ def main():
         args.device = torch.device('cpu')
         args.gpu_index = -1
 
-    dataset = ContrastiveLearningDataset(args.data)
+    #dataset = ContrastiveLearningDataset(args.data)
 
-    train_dataset = dataset.get_dataset(args.dataset_name, args.n_views)
+    train_dataset = PASTIS_Dataset("../PASTIS-R", norm=True, sats=['S2', 'S1A'])
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True,

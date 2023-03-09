@@ -301,7 +301,7 @@ class PASTIS_Dataset(tdata.Dataset):
         if self.mem16:
             return ({k: v.float() for k, v in data.items()}, dates), target
         else:
-            return (data, dates), target
+            return [data['S2'][:, :, [2, 1, 0]], data['S1A']]
 
 
 def prepare_dates(date_dict, reference_date):

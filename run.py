@@ -2,10 +2,10 @@ import argparse
 import torch
 import torch.backends.cudnn as cudnn
 from torchvision import models
-from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
 from models.resnet_simclr import ResNetSimCLR
 from simclr import SimCLR
 from pastis.dataloader import PASTIS_Dataset
+from pastis.collate import pad_collate
 
 PATH_TO_PASTIS = "../PASTIS-R"
 PATH_TO_PASTIS_CODE = "pastis"
@@ -70,11 +70,12 @@ def main():
 
     #dataset = ContrastiveLearningDataset(args.data)
 
-    train_dataset = PASTIS_Dataset("../PASTIS-R", norm=True, sats=['S2', 'S1A'])
+    train_dataset = PASTIS_Dataset("../PASTIS-R", mono_date="0",norm=True, sats=['S2', 'S1A'])
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True,
-        num_workers=args.workers, pin_memory=True, drop_last=True)
+        num_workers=args.workers, pin_memory=True, drop_last=True, 
+	collate_fn=pad_collate)
     
     
     model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)

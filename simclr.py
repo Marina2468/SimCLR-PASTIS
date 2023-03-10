@@ -66,29 +66,32 @@ class SimCLR(object):
         logging.info(f"Training with gpu: {self.args.disable_cuda}.")
 
         for epoch_counter in range(self.args.epochs):
-            for (images, _), _ in tqdm(train_loader):
-                images = torch.cat(images, dim=0)
-
+            for images in tqdm(train_loader):
+                images = torch.squeeze(torch.cat((images[0][:, :, 0:3, :, :], images[1]), dim=0), 1)
+                print(images.shape)
                 images = images.to(self.args.device)
-
+		
                 with autocast(enabled=self.args.fp16_precision):
                     features = self.model(images)
                     logits, labels = self.info_nce_loss(features)
                     loss = self.criterion(logits, labels)
-
+		
+                print("here?")
                 self.optimizer.zero_grad()
 
+                print("here maybe?")
                 scaler.scale(loss).backward()
 
+                print("or here?")
                 scaler.step(self.optimizer)
                 scaler.update()
 
-                if n_iter % self.args.log_every_n_steps == 0:
-                    top1, top5 = accuracy(logits, labels, topk=(1, 5))
-                    self.writer.add_scalar('loss', loss, global_step=n_iter)
-                    self.writer.add_scalar('acc/top1', top1[0], global_step=n_iter)
-                    self.writer.add_scalar('acc/top5', top5[0], global_step=n_iter)
-                    self.writer.add_scalar('learning_rate', self.scheduler.get_lr()[0], global_step=n_iter)
+                #if n_iter % self.args.log_every_n_steps == 0:
+                #    top1, top5 = accuracy(logits, labels, topk=(1, 2))
+                #    self.writer.add_scalar('loss', loss, global_step=n_iter)
+                  #  self.writer.add_scalar('acc/top1', top1[0], global_step=n_iter)
+               #     self.writer.add_scalar('acc/top5', top5[0], global_step=n_iter)
+                #    self.writer.add_scalar('learning_rate', self.scheduler.get_lr()[0], global_step=n_iter)
 
                 n_iter += 1
 

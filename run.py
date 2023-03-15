@@ -70,7 +70,7 @@ def main():
 
     #dataset = ContrastiveLearningDataset(args.data)
 
-    train_dataset = PASTIS_Dataset("../PASTIS-R", mono_date="0",norm=True, sats=['S2', 'S1A'])
+    train_dataset = PASTIS_Dataset("../PASTIS-R", norm=True, sats=['S2', 'S1A'])
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True,

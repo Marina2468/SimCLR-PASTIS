@@ -22,10 +22,11 @@ class SimCLR(object):
         self.writer = SummaryWriter()
         logging.basicConfig(filename=os.path.join(self.writer.log_dir, 'training.log'), level=logging.DEBUG)
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
-
+        self.real_batch_size = self.args.batch_size
+        
     def info_nce_loss(self, features):
 
-        labels = torch.cat([torch.arange(self.args.batch_size) for i in range(self.args.n_views)], dim=0)
+        labels = torch.cat([torch.arange(self.real_batch_size) for i in range(self.args.n_views)], dim=0)
         labels = (labels.unsqueeze(0) == labels.unsqueeze(1)).float()
         labels = labels.to(self.args.device)
 
@@ -67,8 +68,10 @@ class SimCLR(object):
 
         for epoch_counter in range(self.args.epochs):
             for images in tqdm(train_loader):
-                images = torch.squeeze(torch.cat((images[0][:, :, 0:3, :, :], images[1]), dim=0), 1)
-                print(images.shape)
+                s = min(images[0].shape[1], images[1].shape[1])
+                images = torch.cat((images[0][:, 0:s, 0:3, :, :], images[1][:, 0:s, :, :, :]), dim=0)
+                images = torch.reshape(images, (-1, images.shape[2], images.shape[3], images.shape[4]))
+                self.real_batch_size = images.shape[0] // 2
                 images = images.to(self.args.device)
 		
                 with autocast(enabled=self.args.fp16_precision):
@@ -76,22 +79,19 @@ class SimCLR(object):
                     logits, labels = self.info_nce_loss(features)
                     loss = self.criterion(logits, labels)
 		
-                print("here?")
                 self.optimizer.zero_grad()
 
-                print("here maybe?")
                 scaler.scale(loss).backward()
 
-                print("or here?")
                 scaler.step(self.optimizer)
                 scaler.update()
 
-                #if n_iter % self.args.log_every_n_steps == 0:
-                #    top1, top5 = accuracy(logits, labels, topk=(1, 2))
-                #    self.writer.add_scalar('loss', loss, global_step=n_iter)
-                  #  self.writer.add_scalar('acc/top1', top1[0], global_step=n_iter)
-               #     self.writer.add_scalar('acc/top5', top5[0], global_step=n_iter)
-                #    self.writer.add_scalar('learning_rate', self.scheduler.get_lr()[0], global_step=n_iter)
+                if n_iter % self.args.log_every_n_steps == 0:
+                    top1, top5 = accuracy(logits, labels, topk=(1, 5))
+                    self.writer.add_scalar('loss', loss, global_step=n_iter)
+                    self.writer.add_scalar('acc/top1', top1[0], global_step=n_iter)
+                    self.writer.add_scalar('acc/top5', top5[0], global_step=n_iter)
+                    self.writer.add_scalar('learning_rate', self.scheduler.get_lr()[0], global_step=n_iter)
 
                 n_iter += 1
 

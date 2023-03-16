@@ -22,6 +22,8 @@ class SimCLR(object):
         self.writer = SummaryWriter()
         logging.basicConfig(filename=os.path.join(self.writer.log_dir, 'training.log'), level=logging.DEBUG)
         self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
+	#real_batch_size est utilisé pour prendre en compte le fait que les données soient des séries temporelles
+	#et ainsi s'assurer d'avoir la bonne taille de mask
         self.real_batch_size = self.args.batch_size
         
     def info_nce_loss(self, features):
@@ -68,9 +70,12 @@ class SimCLR(object):
 
         for epoch_counter in range(self.args.epochs):
             for images in tqdm(train_loader):
+		#égalisation de la taille des séties temporelles au cas où celles-ci n'auraint pas la même taille
                 s = min(images[0].shape[1], images[1].shape[1])
+		#utilisation des canaux rgb pour les images de capteur multispectrale
                 images = torch.cat((images[0][:, 0:s, 0:3, :, :], images[1][:, 0:s, :, :, :]), dim=0)
                 images = torch.reshape(images, (-1, images.shape[2], images.shape[3], images.shape[4]))
+		#actualisation du batch_size
                 self.real_batch_size = images.shape[0] // 2
                 images = images.to(self.args.device)
 		

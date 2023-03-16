@@ -1,3 +1,6 @@
+# SimCLR-PASTIS: Adaptation du workflow SimCLR pour l'entrainement d'images satellitaires.
+Les images satellitaires capturées par différents capteur de la même zone peuvent être considérées comme des augmentations naturelles l'une de l'autre. Ce dépôt adapte SimCLR pour avoir en entrée du réseaux les images des capteurs différents au lieu d'augmenter artificiellement les images.
+
 # PyTorch SimCLR: A Simple Framework for Contrastive Learning of Visual Representations
 [![DOI](https://zenodo.org/badge/241184407.svg)](https://zenodo.org/badge/latestdoi/241184407)
 

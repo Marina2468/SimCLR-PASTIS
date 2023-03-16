@@ -1,3 +1,5 @@
+#dataloader du dataset pastis. fourni par [pastis-benchmark](https://github.com/VSainteuf/pastis-benchmark)
+
 """
 Author: Vivien Sainte Fare Garnot (github.com/VSainteuf)
 License MIT
@@ -301,6 +303,8 @@ class PASTIS_Dataset(tdata.Dataset):
         if self.mem16:
             return ({k: v.float() for k, v in data.items()}, dates), target
         else:
+            #retourner un tuple de tenseurs contenant les images de deux différents capteurs
+            #utilisé dans la classe SimCLR
             return [data['S2'], data['S1A']]
 
 
